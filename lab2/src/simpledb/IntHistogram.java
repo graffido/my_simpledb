@@ -1,7 +1,5 @@
 package simpledb;
 
-import java.util.ArrayList;
-
 /** A class to represent a fixed-width histogram over a single integer-based field.
  */
 public class IntHistogram {
@@ -51,10 +49,23 @@ public class IntHistogram {
     }
     
     /**
+     * @return
+     *     the average selectivity of this histogram.
+     *     
+     *     This is not an indispensable method to implement the basic
+     *     join optimization. It may be needed if you want to
+     *     implement a more efficient optimization
+     * */
+    public double avgSelectivity()
+    {
+        // some code goes here
+        return 1.0;
+    }
+    
+    /**
      * @return A string describing this histogram, for debugging purposes
      */
     public String toString() {
-
         // some code goes here
         return null;
     }

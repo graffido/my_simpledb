@@ -15,13 +15,14 @@ public class DeleteTest extends FilterBase {
         SeqScan ss = new SeqScan(tid, table.getId(), "");
         Filter filter = new Filter(predicate, ss);
         Delete deleteOperator = new Delete(tid, filter);
-        Query q = new Query(deleteOperator, tid);
+//        Query q = new Query(deleteOperator, tid);
 
-        q.start();
+//        q.start();
+        deleteOperator.open();
         boolean hasResult = false;
         int result = -1;
-        while (q.hasNext()) {
-            Tuple t = q.next();
+        while (deleteOperator.hasNext()) {
+            Tuple t = deleteOperator.next();
             assertFalse(hasResult);
             hasResult = true;
             assertEquals(SystemTestUtil.SINGLE_INT_DESCRIPTOR, t.getTupleDesc());

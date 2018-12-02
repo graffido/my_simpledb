@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import simpledb.*;
+
 import org.junit.Test;
 
 public class AggregateTest extends SimpleDbTestBase {
