@@ -1,24 +1,32 @@
 package simpledb;
 
+import javax.xml.crypto.Data;
 import java.io.*;
+
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * BufferPool manages the reading and writing of pages into memory from
  * disk. Access methods call into it to retrieve pages, and it fetches
  * pages from the appropriate location.
  * <p>
  * The BufferPool is also responsible for locking;  when a transaction fetches
- * a page, BufferPool which check that the transaction has the appropriate
+ * a page, BufferPool checks that the transaction has the appropriate
  * locks to read/write the page.
+ * 
+ * @Threadsafe, all fields are final
  */
 public class BufferPool {
     /** Bytes per page, including header. */
-    public static final int PAGE_SIZE = 4096;
+    private static final int PAGE_SIZE = 4096;
 
     /** Default number of pages passed to the constructor. This is used by
     other classes. BufferPool should use the numPages argument to the
     constructor instead. */
     public static final int DEFAULT_PAGES = 50;
 
+    private final int numPages;
+    private ConcurrentHashMap<PageId, Page> bufferPool;
     /**
      * Creates a BufferPool that caches up to numPages pages.
      *
@@ -26,7 +34,14 @@ public class BufferPool {
      */
     public BufferPool(int numPages) {
         // some code goes here
+        this.numPages = numPages;
+        this.bufferPool = new ConcurrentHashMap<>(numPages);
     }
+    
+    public static int getPageSize() {
+      return PAGE_SIZE;
+    }
+
 
     /**
      * Retrieve the specified page with the associated permissions.
@@ -46,7 +61,20 @@ public class BufferPool {
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
         // some code goes here
-        return null;
+        if (bufferPool.containsKey(pid)) {
+            return bufferPool.get(pid);
+        } else {
+            if (bufferPool.size() < numPages) {
+                Page page =
+                        Database.getCatalog()
+                        .getDatabaseFile(pid.getTableId())
+                        .readPage(pid);
+                bufferPool.put(pid, page);
+                return page;
+            } else {
+                throw new DbException("BufferPool: BufferPool is full");
+            }
+        }
     }
 
     /**
@@ -68,13 +96,13 @@ public class BufferPool {
      *
      * @param tid the ID of the transaction requesting the unlock
      */
-    public  void transactionComplete(TransactionId tid) throws IOException {
+    public void transactionComplete(TransactionId tid) throws IOException {
         // some code goes here
         // not necessary for lab1|lab2
     }
 
     /** Return true if the specified transaction has a lock on the specified page */
-    public   boolean holdsLock(TransactionId tid, PageId p) {
+    public boolean holdsLock(TransactionId tid, PageId p) {
         // some code goes here
         // not necessary for lab1|lab2
         return false;
@@ -87,7 +115,7 @@ public class BufferPool {
      * @param tid the ID of the transaction requesting the unlock
      * @param commit a flag indicating whether we should commit or abort
      */
-    public   void transactionComplete(TransactionId tid, boolean commit)
+    public void transactionComplete(TransactionId tid, boolean commit)
         throws IOException {
         // some code goes here
         // not necessary for lab1|lab2
@@ -107,7 +135,7 @@ public class BufferPool {
      * @param tableId the table to add the tuple to
      * @param t the tuple to add
      */
-    public  void insertTuple(TransactionId tid, int tableId, Tuple t)
+    public void insertTuple(TransactionId tid, int tableId, Tuple t)
         throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
@@ -123,8 +151,8 @@ public class BufferPool {
      * been dirtied, as it is not possible that a new page was created during the deletion
      * (note difference from addTuple).
      *
-     * @param tid the transaction adding the tuple.
-     * @param t the tuple to add
+     * @param tid the transaction deleting the tuple.
+     * @param t the tuple to delete
      */
     public  void deleteTuple(TransactionId tid, Tuple t)
         throws DbException, TransactionAbortedException {
@@ -166,7 +194,7 @@ public class BufferPool {
      */
     public synchronized  void flushPages(TransactionId tid) throws IOException {
         // some code goes here
-        // not necessary for lab1|lab2|lab3
+        // not necessary for lab1|lab2
     }
 
     /**
